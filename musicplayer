@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Full Music Player</title>
+<style>
+    body {
+        background: #1e1e2f;
+        color: white;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .player {
+        background: #2d2d44;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        width: 350px;
+    }
+    .controls {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 15px;
+    }
+    button {
+        background: #ff4b5c;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 18px;
+    }
+    button:hover {
+        background: #ff1e3c;
+    }
+    input[type="range"] {
+        width: 100%;
+    }
+    .playlist {
+        margin-top: 15px;
+        text-align: left;
+        max-height: 150px;
+        overflow-y: auto;
+    }
+    .playlist div {
+        padding: 8px;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .playlist div:hover {
+        background: rgba(255,255,255,0.1);
+    }
+    .playlist .active {
+        background: rgba(255,255,255,0.2);
+    }
+</style>
+</head>
+<body>
+
+<div class="player">
+    <h2 id="track-title">No Track Playing</h2>
+    <audio id="audio"></audio>
+
+    <div>
+        <input type="range" id="progress" value="0" max="100">
+    </div>
+
+    <div class="controls">
+        <button id="prev">⏮️</button>
+        <button id="play-pause">▶️</button>
+        <button id="next">⏭️</button>
+    </div>
+
+    <div>
+        <label>Volume:</label>
+        <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+    </div>
+
+    <div class="playlist" id="playlist"></div>
+</div>
+
+<script>
+    const audio = document.getElementById("audio");
+    const playPauseBtn = document.getElementById("play-pause");
+    const prevBtn = document.getElementById("prev");
+    const nextBtn = document.getElementById("next");
+    const progress = document.getElementById("progress");
+    const volume = document.getElementById("volume");
+    const trackTitle = document.getElementById("track-title");
+    const playlistContainer = document.getElementById("playlist");
+
+    const playlist = [
+        { title: "Song One", src: "song1.mp3" },
+        { title: "Song Two", src: "song2.mp3" },
+        { title: "Song Three", src: "song3.mp3" }
+    ];
+
+    let currentTrackIndex = 0;
+    let isPlaying = false;
+
+    function loadPlaylist() {
+        playlistContainer.innerHTML = "";
+        playlist.forEach((track, index) => {
+            const trackElement = document.createElement("div");
+            trackElement.textContent = track.title;
+            if (index === currentTrackIndex) {
+                trackElement.classList.add("active");
+            }
+            trackElement.addEventListener("click", () => {
+                currentTrackIndex = index;
+                loadTrack();
+                playTrack();
+            });
+            playlistContainer.appendChild(trackElement);
+        });
+    }
+
+    function loadTrack() {
+        audio.src = playlist[currentTrackIndex].src;
+        trackTitle.textContent = playlist[currentTrackIndex].title;
+        loadPlaylist();
+    }
+
+    function playTrack() {
+        audio.play();
+        isPlaying = true;
+        playPauseBtn.textContent = "⏸️";
+    }
+
+    function pauseTrack() {
+        audio.pause();
+        isPlaying = false;
+        playPauseBtn.textContent = "▶️";
+    }
+
+    playPauseBtn.addEventListener("click", () => {
+        isPlaying ? pauseTrack() : playTrack();
+    });
+
+    prevBtn.addEventListener("click", () => {
+        currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+        loadTrack();
+        playTrack();
+    });
+
+    nextBtn.addEventListener("click", () => {
+        currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+        loadTrack();
+        playTrack();
+    });
+
+    audio.addEventListener("timeupdate", () => {
+        if (audio.duration) {
+            progress.value = (audio.currentTime / audio.duration) * 100;
+        }
+    });
+
+    progress.addEventListener("input", () => {
+        audio.currentTime = (progress.value / 100) * audio.duration;
+    });
+
+    volume.addEventListener("input", () => {
+        audio.volume = volume.value;
+    });
+
+    audio.addEventListener("ended", () => {
+        currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+        loadTrack();
+        playTrack();
+    });
+
+    loadTrack();
+</script>
+
+</body>
+</html>
